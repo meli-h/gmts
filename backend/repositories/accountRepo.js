@@ -1,46 +1,44 @@
+// backend/repositories/accountRepo.js
 import { pool } from '../database.js';
 
-//Account
-export async function getAccounts() {
-    const [rows] = await pool.query("SELECT * FROM Account");
-    return rows;
+
+export async function listAccounts() {
+  const [rows] = await pool.query(
+    `SELECT account_id, username, account_type FROM Account`
+  );
+  return rows;
 }
 
-export async function getAccount(username) {
-    const [rows] = await pool.query(`
-        SELECT * 
-        FROM Account
-        WHERE username = ?
-        `, [username]);
-    return rows[0];
+export async function getAccount(id) {
+  const [rows] = await pool.query(
+    `SELECT account_id, username, account_type
+       FROM Account
+      WHERE account_id = ?`,
+    [id]
+  );
+  return rows[0];              // undefined dönerse controller 404 basacak
 }
 
-export async function createAccount(username, account_password, account_type) {
-    const result = await pool.query(`
-        INSERT INTO Account(username, account_password)
-        VALUES (?,?, ?)`, [username, account_password, account_type])
 
-    return getAccount(username);
+export async function createAccount(username, passwordHash, type) {
+  const [result] = await pool.query(
+    `INSERT INTO Account (username, account_password, account_type)
+          VALUES (?, ?, ?)`,
+    [username, passwordHash, type]
+  );
+  return result.insertId;      // yeni eklenen kaydın id'si
 }
 
-export async function deleteAccount(username) {
-    const result = await pool.query(`
-        DELETE FROM Account 
-        WHERE username = ?
-        `, [username]);
-
-    return result;
+export async function updateAccount(id, username, type) {
+  await pool.query(
+    `UPDATE Account
+        SET username = ?, account_type = ?
+      WHERE account_id = ?`,
+    [username, type, id]
+  );
 }
 
-export async function updateAccount(username, account_password) {
-    const result = await pool.query(`
-        UPDATE Account
-        SET username = ?, account_password = ?
-        WHERE username = ?;
-        `, [username, account_password, username]);
 
-    return result;
+export async function deleteAccount(id) {
+  await pool.query(`DELETE FROM Account WHERE account_id = ?`, [id]);
 }
-
-// const accountModel = { getAccounts, getAccount, createAccount, deleteAccount, updateAccount };
-// export default accountModel;

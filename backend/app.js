@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import trainerRoutes from './routes/trainerRoutes.js';
 import classRoutes   from './routes/classRoutes.js';
+import accountRoutes from './routes/accountRoutes.js';
 
 const app = express();
 app.use(cors());
@@ -11,12 +12,12 @@ app.get('/accounts', (req, res) => {
     res.send('accounts')
 })
 
+
+
+
 app.use('/api/trainers', trainerRoutes);
 app.use('/api/classes',  classRoutes);
-
-
-
-
+app.use('/api/accounts', accountRoutes);
 
 
 app.use((err, req, res, next) => {
