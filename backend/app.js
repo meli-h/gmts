@@ -4,6 +4,7 @@ import trainerRoutes from './routes/trainerRoutes.js';
 import classRoutes   from './routes/classRoutes.js';
 import accountRoutes from './routes/accountRoutes.js';
 import gymMemberRoutes from './routes/gymMemberRoutes.js';
+import administratorRoutes from './routes/administratorRoutes.js';
 
 const app = express();
 app.use(cors());
@@ -15,7 +16,7 @@ app.use('/api/trainers', trainerRoutes);
 app.use('/api/classes',  classRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/gym-members', gymMemberRoutes);
-
+app.use('/api/admin', administratorRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
