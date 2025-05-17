@@ -26,6 +26,7 @@ export const addAccount = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const id = await createAccount(username, hash, account_type);
     return res.status(201).json({ account_id: id });
+    console.log(`Account created: ${id}`, req.body);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Account not created' });

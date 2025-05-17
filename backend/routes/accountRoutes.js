@@ -10,10 +10,10 @@ import {
 
 const router = Router();
 
-router.get('/',    getAllAccounts);   // GET  /api/accounts
-router.get('/:id', getOneAccount);    // GET  /api/accounts/:id
-router.post('/',   addAccount);       // POST /api/accounts
-router.put('/:id', editAccount);      // PUT  /api/accounts/:id
-router.delete('/:id', removeAccount); // DELETE /api/accounts/:id
+router.get('/',    getAllAccounts);   // GET  /api/accounts ✔
+router.get('/:id', getOneAccount);    // GET  /api/accounts/:id  ✔
+router.post('/',   addAccount);       // POST /api/accounts ✔
+router.put('/:id', editAccount);      // PUT  /api/accounts/:id ✔
+router.delete('/:id', removeAccount); // DELETE /api/accounts/:id ✔
 
 export default router;

@@ -1,56 +1,60 @@
 import { pool } from '../database.js';
-//GymMember
-async function getGymMembers() {
-    const [rows] = await pool.query("SELECT * FROM GymMember");
-    return rows;
+
+
+export async function listMembers() {
+  const [rows] = await pool.query(`
+    SELECT gm.*, a.username
+      FROM GymMember gm
+      JOIN Account a ON a.account_id = gm.account_id
+  `);
+  return rows;
 }
 
-async function getGymMember(gymMember_id) {
-    const [rows] = await pool.query(`
-        SELECT * 
-        FROM GymMember
-        WHERE gymMember_id = ?
-        `, [gymMember_id]);
-    return rows[0];
+export async function getMember(id) { //???
+  const [rows] = await pool.query(`
+    SELECT gm.*, a.username
+      FROM GymMember gm
+      JOIN Account a ON a.account_id = gm.account_id
+     WHERE gm.gymMember_id = ?
+  `, [id]);
+  return rows[0];
 }
 
-async function createGymMember(name, surname, contactNumber, DateOfBirth, Gender, username, account_password) {
-    const result = await pool.query(`
-        INSERT INTO GymMember(gymMember_id)
-        VALUES (?,?,?,?,?,?,?)`, [name, surname, contactNumber, DateOfBirth, Gender])
 
-    const gymMemberAccount = await accountModel.createAccount(username, account_password);//Account olustur
+export async function createMember(data) {
+  const {
+    name, surname, contactNumber, DateOfBirth, Gender,
+    membership_type, member_start_date, member_end_date, account_id
+  } = data;
 
-    return getGymMember(gymMember_id);
+  const [result] = await pool.query(`
+    INSERT INTO GymMember
+      (name, surname, contactNumber, DateOfBirth, Gender,
+       membership_type, member_start_date, member_end_date, account_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [name, surname, contactNumber, DateOfBirth, Gender,
+      membership_type, member_start_date, member_end_date, account_id]);
+
+  return result.insertId;
 }
 
-async function deleteGymMember(gymMember_id) {
-    const result = await pool.query(`
-        DELETE FROM GymMember 
-        WHERE gymMember_id = ?
-        `, [gymMember_id]);
+/* ---------- UPDATE ---------- */
+export async function updateMember(id, data) {
+  const {
+    name, surname, contactNumber, DateOfBirth,
+    Gender, membership_type, member_start_date, member_end_date
+  } = data;
 
-    return result;
+  await pool.query(`
+    UPDATE GymMember
+       SET name=?, surname=?, contactNumber=?, DateOfBirth=?, Gender=?,
+           membership_type=?, member_start_date=?, member_end_date=?
+     WHERE gymMember_id = ?
+  `, [name, surname, contactNumber, DateOfBirth, Gender,
+      membership_type, member_start_date, member_end_date, id]);
 }
 
-async function updateGymMember(name, surname, contactNumber, DateOfBirth, Gender, membership_type, member_start_date, member_end_date) {//Sadece gymMember'a has ozellikleri
-    const result = await pool.query(`
-        UPDATE GymMember
-        SET name = ?
-        SET surname = ?
-        SET contactNumber = ?
-        SET DateOfBirth = ?
-        SET Gender = ?
-        SET membership_type = ?
-        SET member_start_date = ?
-        SET member_end_date = ?
-
-
-        WHERE gymMember_id = ?;
-        `, [name, surname, contactNumber, DateOfBirth, Gender, membership_type, member_start_date, member_end_date, gymMember_id]);
-
-    return result;
+/* ---------- DELETE ---------- */
+export async function deleteMember(id) {
+  await pool.query(`DELETE FROM GymMember WHERE gymMember_id = ?`, [id]);
 }
-
-const gymMemberModel = { getGymMembers, getGymMember, createGymMember, deleteGymMember, updateGymMember };
-export default gymMemberModel;
