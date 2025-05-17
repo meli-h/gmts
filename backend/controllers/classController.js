@@ -1,35 +1,54 @@
 // backend/controllers/classController.js
 import {
   listUpcomingClasses,
-  deleteClass as deleteClassRepo,
-  updateClass as updateClassRepo    // ❷  'as' ile YENI İSİM verdik
+  getClassById,
+  createClass,
+  updateClass,
+  deleteClass
 } from '../repositories/classRepo.js';
 
-/* ❸  GET /api/classes  */
-export const getAllClasses = async (_req, res) =>
-  res.json(await listUpcomingClasses());
+/* GET  /api/classes */
+export const getAllClasses = async (_req, res) => {
+  const list = await listUpcomingClasses();
+  res.json(list);
+};
 
-/* ❹  DELETE /api/classes/:id  */
-export const removeClass = async (req, res) => {
+/* GET  /api/classes/:id */
+export const getOneClass = async (req, res) => {
+  const cls = await getClassById(req.params.id);
+  if (!cls) return res.status(404).json({ error: 'Class not found' });
+  res.json(cls);
+};
+
+/* POST /api/classes */
+export const addClass = async (req, res) => {
   try {
-    await deleteClassRepo(req.params.id);     // ← repo fonksiyonunun çağrısı
-    return res.status(204).send();            // 204 No-Content
+    const newId = await createClass(req.body);
+    res.status(201).json({ class_id: newId });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: 'Class not deleted' });
+    res.status(err.status || 500).json({ error: err.message });
   }
 };
 
-export const updateClass = async (req, res) => {
-  const { title, capacity } = req.body;
-  const class_id = req.params.id;
-
+/* PUT  /api/classes/:id */
+export const editClass = async (req, res) => {
   try {
-    await updateClassRepo(title, capacity, class_id); // ← repo fonksiyonunun çağrısı
-    console.log('Class updated:', { title, capacity, class_id });
-    return res.status(204).send();                    // 204 No-Content
+    await updateClass(req.params.id, req.body);
+    res.status(204).send();
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: 'Class not updated' });
+    res.status(500).json({ error: 'Class not updated' });
+  }
+};
+
+/* DELETE /api/classes/:id */
+export const removeClass = async (req, res) => {
+  try {
+    await deleteClass(req.params.id);
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Class not deleted' });
   }
 };

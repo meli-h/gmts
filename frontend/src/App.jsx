@@ -1,79 +1,26 @@
-import{
-  createBrowserRouter,
-  RouterProvider,
-  Route, 
-  Outlet 
-
-} from "react-router-dom"; 
-
-import Login from "./pages/Login"
-import Admin from "./pages/Admin";
-import GymMember from "./pages/GymMember";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Classes  from "./pages/Classes";
 import Trainers from "./pages/Trainers";
-import Home from "./pages/Home";
-import Class from "./pages/Class";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import "./style.scss";
-import Booking from "./pages/Booking";
+import Members  from "./pages/Members";
+import Bookings from "./pages/Bookings";
 
-const Layout = () => {
+export default function App() {
   return (
-    <>
-      <Navbar />
-      <Outlet />
-      <Footer />
-    </>
-  );
-};
+    <BrowserRouter>
+      <nav className="p-4 bg-gray-100 flex gap-4">
+        <Link to="/classes">Classes</Link>
+        <Link to="/trainers">Trainers</Link>
+        <Link to="/members">Members</Link>
+        <Link to="/bookings">Bookings</Link>
+      </nav>
 
-
-const router = createBrowserRouter([
-  {
-    path : "/",
-    element : <Layout/>,
-    children : [
-      {
-        index : true,
-        element : <Home/>
-      },
-      {
-        path : "/admin",
-        element : <Admin/>
-      },
-      {
-        path : "/gym-member",
-        element : <GymMember/>
-      },
-      {
-        path : "/trainers",
-        element : <Trainers/>
-      },
-      {
-        path : "/booking",
-        element : <Booking/>
-      },
-      {
-        path: "/class",
-        element: <Class/>
-      }
-    ]
-  },
-  {
-    path : "/login",
-    element : <Login/>
-  }
-]);
-
-
-function App() {
-  return (
-  <div className="app">
-    <div className="container">
-      <RouterProvider router={router} />
-    </div>
-  </div>
+      <Routes>
+        <Route path="/classes"  element={<Classes />}  />
+        <Route path="/trainers" element={<Trainers />} />
+        <Route path="/members"  element={<Members />}  />
+        <Route path="/bookings" element={<Bookings />} />
+        <Route path="*"         element={<p className="p-4">Select a page</p>} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
