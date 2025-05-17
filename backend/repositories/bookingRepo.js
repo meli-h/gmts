@@ -1,48 +1,57 @@
 import { pool } from '../database.js';
-//Booking
-async function getBookings() {
-    const [rows] = await pool.query("SELECT * FROM Booking");
-    return rows;
+
+/* Yardımcı: sınıfta boş yer var mı? */
+async function capacityAvailable(class_id) {
+  const [[row]] = await pool.query(`
+    SELECT capacity - (SELECT COUNT(*) FROM Booking WHERE class_id = ?) AS spots
+      FROM Class
+     WHERE class_id = ?`,
+    [class_id, class_id]);
+  return row && row.spots > 0;
 }
 
-async function getBooking(gymMember_id) {
-    const [rows] = await pool.query(`
-        SELECT * 
-        FROM Booking
-        WHERE gymMember_id = ?
-        `, [gymMember_id]);
-    return rows[0];
+export async function listBookings() {
+  const [rows] = await pool.query(`
+    SELECT b.*, c.title, c.start_time,
+           gm.name AS member_name, gm.surname AS member_surname
+      FROM Booking b
+      JOIN Class      c  ON c.class_id      = b.class_id
+      JOIN GymMember  gm ON gm.gymMember_id = b.gymMember_id
+  `);
+  return rows;
 }
 
-async function createBooking(class_id, gymMember_id) {//classlar oluşma zamanına göre geçmiş gelecek diye ayrılacak
-    const result = await pool.query(`
-        INSERT INTO Booking(booking_id)
-        VALUES (?,?)`, [class_id, gymMember_id])
-
-    return getBooking(booking_id);
+export async function getBooking(id) {
+  const [rows] = await pool.query(`SELECT * FROM Booking WHERE booking_id = ?`, [id]);
+  return rows[0];
 }
 
-async function deleteBooking(booking_id) {
-    const result = await pool.query(`
-        DELETE FROM Booking 
-        WHERE booking_id = ?
-        `, [booking_id]);
+export async function createBooking(class_id, gymMember_id) {
+  /* 1) Kapasite kontrolü */
+  if (!(await capacityAvailable(class_id))) {
+    const e = new Error('Class is full'); e.status = 409; throw e;
+  }
 
-    return result;
+  /* 2) Üyelik tarih aralığı */
+  const [[active]] = await pool.query(`
+    SELECT 1
+      FROM GymMember gm
+      JOIN Class c ON c.class_id = ?
+     WHERE gm.gymMember_id = ?
+       AND c.start_time BETWEEN gm.member_start_date AND gm.member_end_date`,
+    [class_id, gymMember_id]);
+  if (!active) {
+    const e = new Error('Membership inactive for class date'); e.status = 400; throw e;
+  }
+
+  /* 3) Kaydet */
+  const [r] = await pool.query(`
+    INSERT INTO Booking (class_id, gymMember_id)
+    VALUES (?, ?)`,
+    [class_id, gymMember_id]);
+  return r.insertId;
 }
 
-async function updateBooking(booking_id, class_id, gymMember_id, booked_at) {//Sadece booking'a has ozellikleri
-    const result = await pool.query(`
-        UPDATE Booking
-        SET class_id = ?
-        SET gymMember_id = ?
-        SET booked_at = ?
-
-        WHERE booking_id = ?;
-        `, [class_id, gymMember_id, booked_at, booking_id]);
-
-    return result;
+export async function deleteBooking(id) {
+  await pool.query(`DELETE FROM Booking WHERE booking_id = ?`, [id]);
 }
-
-const bookingModel = { getBookings, getBooking, createBooking, deleteBooking, updateBooking };
-export default bookingModel;
