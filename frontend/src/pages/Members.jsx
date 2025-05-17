@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react';
-import { getTrainers, addTrainer, deleteTrainer } from '../api';
+import { getMembers, addMember } from '../api';
 
-export default function Trainers() {
-  const [trainers,setTrainers]=useState([]);
+export default function Members() {
+  const [members,setMembers]=useState([]);
   const [form,setForm]=useState({ name:'',surname:'',account_id:0 });
 
-  useEffect(()=>{ getTrainers().then(setTrainers); },[]);
+  useEffect(()=>{ getMembers().then(setMembers); },[]);
 
   const submit=async e=>{
     e.preventDefault();
-    await addTrainer(form);
-    setTrainers(await getTrainers());
+    await addMember({ ...form, membership_type:'Monthly' });
+    setMembers(await getMembers());
     setForm({ name:'',surname:'',account_id:0 });
   };
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Trainers</h1>
+      <h1 className="text-2xl font-bold">Gym Members</h1>
 
       <form onSubmit={submit} className="flex gap-2">
         <input className="border p-1" placeholder="Name"
@@ -29,13 +29,9 @@ export default function Trainers() {
       </form>
 
       <ul className="space-y-2">
-        {trainers.map(t=>(
-          <li key={t.trainer_id} className="border p-3 rounded flex justify-between">
-            <span>{t.name} {t.surname} (#{t.trainer_id})</span>
-            <button className="bg-red-500 text-white px-2"
-                    onClick={()=>{ deleteTrainer(t.trainer_id); setTrainers(trainers.filter(x=>x.trainer_id!==t.trainer_id)); }}>
-              Del
-            </button>
+        {members.map(m=>(
+          <li key={m.gymMember_id} className="border p-3 rounded flex justify-between">
+            <span>{m.name} {m.surname} (#{m.gymMember_id})</span>
           </li>
         ))}
       </ul>
