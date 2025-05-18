@@ -1,14 +1,38 @@
 import { useEffect, useState } from 'react';
 import { getClasses, deleteClass } from '../../api';
-import { Table, Button, Spinner } from 'react-bootstrap';
+import { Table, Button, Spinner, Pagination } from 'react-bootstrap';
+
+const PAGE_SIZE = 10;
 
 export default function ClassListPage() {
-    const [list, setList] = useState(null);
-    const refresh = async () => setList(await getClasses());
+    const [classes, setClasses] = useState(null);
+    const [page, setPage] = useState(1);
+
+    const refresh = async () => setClasses(await getClasses());
 
     useEffect(() => { refresh(); }, []);
 
-    if (!list) return <Spinner className="m-5" animation="border" />;
+    /* ---------- silme ---------- */
+    const handleDelete = async (id) => {
+        if (!window.confirm('Delete this class?')) return;
+        await deleteClass(id);
+        refresh();
+    };
+
+    if (!classes) return <Spinner className="m-5" animation="border" />;
+
+    /* ---------- pagination ---------- */
+    const totalPages = Math.ceil(classes.length / PAGE_SIZE);
+    const slice = classes.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    const items = [];
+    for (let p = 1; p <= totalPages; p++) {
+        items.push(
+            <Pagination.Item key={p} active={p === page} onClick={() => setPage(p)}>
+                {p}
+            </Pagination.Item>
+        );
+    }
 
     return (
         <div>
@@ -22,25 +46,37 @@ export default function ClassListPage() {
                     </tr>
                 </thead>
                 <tbody>
-                    {list.map(c => (
+                    {slice.map(c => (
                         <tr key={c.class_id}>
                             <td>{c.class_id}</td>
                             <td>{c.title}</td>
-                            <td>{c.start_time?.replace('T', ' ')}</td>
+                            <td>{c.start_time?.replace('T', ' ').slice(0, 16)}</td>
                             <td>{c.duration}</td>
                             <td>{c.capacity}</td>
                             <td>
-                                <Button size="sm" variant="danger"
-                                    onClick={async () => { await deleteClass(c.class_id); refresh(); }}>
+                                <Button
+                                    size="sm" variant="danger"
+                                    onClick={() => handleDelete(c.class_id)}
+                                >
                                     Delete
                                 </Button>
                             </td>
                         </tr>
                     ))}
-                    {list.length === 0 &&
+                    {classes.length === 0 &&
                         <tr><td colSpan={6} className="text-center">No classes yet</td></tr>}
                 </tbody>
             </Table>
+
+            {totalPages > 1 && (
+                <Pagination>
+                    {items}
+                    <Pagination.Next
+                        onClick={() => page < totalPages && setPage(page + 1)}
+                        disabled={page === totalPages}
+                    />
+                </Pagination>
+            )}
         </div>
     );
 }
