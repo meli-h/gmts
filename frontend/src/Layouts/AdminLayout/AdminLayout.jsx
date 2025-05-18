@@ -11,7 +11,7 @@ export default function AdminLayout() {
     return (
         <div className="d-flex flex-column vh-100">
             {/* Üst bar */}
-            <Navbar bg="dark" variant="dark" className="px-3" sticky="top">
+            <Navbar bg="dark" variant="dark" className="px-3" sticky="top" style={{ minWidth: '100vw' }}>
                 <Navbar.Brand as={Link} to="/admin">Gym Admin</Navbar.Brand>
             </Navbar>
 

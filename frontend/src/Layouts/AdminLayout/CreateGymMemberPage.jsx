@@ -1,81 +1,134 @@
 // src/Layouts/AdminLayout/CreateGymMemberPage.jsx
 import { useState } from 'react';
 import { addMember } from '../../api';
-import { Form, Button } from 'react-bootstrap';
-
-const ENDPOINT = {
-    trainers: '/api/trainers',
-    members: '/api/gym-members',   // <-- /api/gym-members DEĞİL!
-};
-
-
+import { Form, Row, Col, Button } from 'react-bootstrap';
 
 export default function CreateGymMemberPage() {
-    const [member, setMember] = useState({
-        name: '',
-        surname: '',
-        account_id: '',
-        membership_type: 'Monthly'
+  const [m, setM] = useState({
+    name: '',
+    surname: '',
+    contactNumber: '',
+    dob: '',              // DateOfBirth’a map edilecek
+    gender: 'Male',
+    membershipType: 'Monthly',
+    username: '',
+    password: ''
+  });
+
+  const update = (key) => (e) => {
+    setM(prev => ({ ...prev, [key]: e.target.value }));
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    await addMember({
+      name:           m.name,
+      surname:        m.surname,
+      contactNumber:  m.contactNumber,
+      DateOfBirth:    m.dob,
+      Gender:         m.gender,
+      membershipType: m.membershipType,
+      username:       m.username,
+      password:       m.password
     });
+    alert('Member created!');
+    setM({
+      name: '',
+      surname: '',
+      contactNumber: '',
+      dob: '',
+      gender: 'Male',
+      membershipType: 'Monthly',
+      username: '',
+      password: ''
+    });
+  };
 
-    const submit = async (e) => {
-        e.preventDefault();
-        await addMember({
-            ...member,
-            account_id: +member.account_id,    // number cast
-        });
-        alert('Member created!');
-        setMember({ name: '', surname: '', account_id: '', membership_type: 'Monthly' });
-    };
+  return (
+    <div>
+      <h2 className="mb-4">Create Gym Member</h2>
+      <Form onSubmit={submit}>
+        <Row className="g-3">
+          <Col md={4}>
+            <Form.Control
+              placeholder="Name"
+              value={m.name}
+              onChange={update('name')}
+              required
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Control
+              placeholder="Surname"
+              value={m.surname}
+              onChange={update('surname')}
+              required
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Control
+              placeholder="Contact Number"
+              value={m.contactNumber}
+              onChange={update('contactNumber')}
+              required
+            />
+          </Col>
 
-    return (
-        <div>
-            <h2 className="mb-4">Create Gym Member</h2>
-            <Form onSubmit={submit} className="row g-3">
+          <Col md={4}>
+            <Form.Control
+              type="date"
+              placeholder="Date of Birth"
+              value={m.dob}
+              onChange={update('dob')}
+              required
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Select
+              value={m.gender}
+              onChange={update('gender')}
+              required
+            >
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </Form.Select>
+          </Col>
 
-                <Form.Group className="col-md-4">
-                    <Form.Control
-                        placeholder="Name"
-                        value={member.name}
-                        onChange={(e) => setMember({ ...member, name: e.target.value })}
-                        required
-                    />
-                </Form.Group>
+          <Col md={4}>
+            <Form.Select
+              value={m.membershipType}
+              onChange={update('membershipType')}
+            >
+              <option value="Monthly">Monthly</option>
+              <option value="Quarterly">Quarterly</option>
+              <option value="Yearly">Yearly</option>
+            </Form.Select>
+          </Col>
 
-                <Form.Group className="col-md-4">
-                    <Form.Control
-                        placeholder="Surname"
-                        value={member.surname}
-                        onChange={(e) => setMember({ ...member, surname: e.target.value })}
-                        required
-                    />
-                </Form.Group>
+          <Col md={4}>
+            <Form.Control
+              placeholder="Username"
+              value={m.username}
+              onChange={update('username')}
+              required
+            />
+          </Col>
+          <Col md={4}>
+            <Form.Control
+              type="password"
+              placeholder="Password"
+              value={m.password}
+              onChange={update('password')}
+              required
+            />
+          </Col>
 
-                <Form.Group className="col-md-4">
-                    <Form.Control
-                        type="number"
-                        placeholder="Account ID"
-                        value={member.account_id}
-                        onChange={(e) => setMember({ ...member, account_id: e.target.value })}
-                        required
-                    />
-                </Form.Group>
-
-                <Form.Group className="col-md-4">
-                    <Form.Select
-                        value={member.membership_type}
-                        onChange={(e) => setMember({ ...member, membership_type: e.target.value })}
-                    >
-                        <option value="Monthly">Monthly</option>
-                        <option value="Quarterly">Quarterly</option>
-                        <option value="Yearly">Yearly</option>
-                    </Form.Select>
-                </Form.Group>
-
-                <div className="col-12">
-                    <Button type="submit">Create</Button>
-                </div>
-            </Form>
-        </div>
-    );
+          <Col xs={12}>
+            <Button type="submit">Create Member</Button>
+          </Col>
+        </Row>
+      </Form>
+    </div>
+  );
 }
