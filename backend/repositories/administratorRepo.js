@@ -9,8 +9,9 @@ export async function getAdmin() {    //????????
   return rows[0];
 }
 
-export async function createAdmin(account_id) {
-  const [r] = await pool.query(`
+export async function createAdmin(account_id, conn = null) {
+  const connection = conn || pool;
+  const [r] = await connection.query(`
     INSERT INTO Administrator (account_id) VALUES (?)`, [account_id]);
   return r.insertId;
 }

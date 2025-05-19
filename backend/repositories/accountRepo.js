@@ -20,8 +20,9 @@ export async function getAccount(id) {
 }
 
 
-export async function createAccount(username, passwordHash, type) {
-  const [result] = await pool.query(
+export async function createAccount(username, passwordHash, type, conn = null) {
+  const connection = conn || pool;
+  const [result] = await connection.query(
     `INSERT INTO Account (username, account_password, account_type)
           VALUES (?, ?, ?)`,
     [username, passwordHash, type]

@@ -2,7 +2,7 @@
 import { faker } from '@faker-js/faker';
 import { pool }  from '../database.js';
 import { createAccount }    from '../repositories/accountRepo.js';
-import { createMember }     from '../repositories/gymMemberRepo.js';
+import { createGymMember }  from '../repositories/gymMemberRepo.js';
 import bcrypt from 'bcrypt';
 
 export async function seedMembers(total = 5000) {
@@ -34,7 +34,7 @@ export async function seedMembers(total = 5000) {
                                (mtype==='Monthly'?30: mtype==='Quarterly'?90:365)*24*3600*1000)
                                .toISOString().split('T')[0];
 
-        batchPromises.push(createMember({
+        batchPromises.push(createGymMember({
           name:             firstName,
           surname,
           contactNumber:    phone,
