@@ -42,3 +42,13 @@ export async function updateAccount(id, username, type) {
 export async function deleteAccount(id) {
   await pool.query(`DELETE FROM Account WHERE account_id = ?`, [id]);
 }
+
+
+
+export async function findAccountByUsername(username) {
+  const [rows] = await pool.query(
+    `SELECT * FROM Account WHERE username = ?`,
+    [username]
+  );
+  return rows[0] || null;
+}

@@ -4,17 +4,19 @@ import { pool } from '../database.js';
 /* ---------- LIST ALL / UPCOMING ---------- */
 export async function listUpcomingClasses() {
   const [rows] = await pool.query(`
-    SELECT c.class_id,
-           c.title,
-           c.start_time,
-           c.duration,
-           c.capacity,
-           CONCAT(t.name, ' ', t.surname) AS trainer,
-           (SELECT COUNT(*) FROM Booking b WHERE b.class_id = c.class_id) AS enrolled
-      FROM Class c
-      JOIN Trainer t ON t.trainer_id = c.trainer_id
-     WHERE c.start_time >= NOW()
-     ORDER BY c.start_time
+    SELECT
+      c.class_id,
+      c.trainer_id,    
+      c.title,
+      c.start_time,
+      c.duration,
+      c.capacity,
+      CONCAT(t.name, ' ', t.surname) AS trainer,
+      (SELECT COUNT(*) FROM Booking b WHERE b.class_id = c.class_id) AS enrolled
+    FROM Class c
+    JOIN Trainer t ON t.trainer_id = c.trainer_id
+    WHERE c.start_time >= NOW()
+    ORDER BY c.start_time
   `);
   return rows;
 }

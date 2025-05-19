@@ -2,6 +2,7 @@
   import { pool } from '../database.js';
   import { createAccount } from './accountRepo.js';
   import bcrypt from 'bcrypt';
+  
 
   /* ---------- LIST & GET DEĞİŞMEDİ ---------- */
   export async function listTrainers() {
@@ -18,6 +19,15 @@
         FROM Trainer t
         JOIN Account a ON a.account_id = t.account_id
       WHERE t.trainer_id = ?`, [id]);
+    return rows[0];
+  }
+
+  export async function getTrainerByAccountId(accountId) {
+    const [rows] = await pool.query(`
+      SELECT t.*, a.username
+        FROM Trainer t
+        JOIN Account a ON a.account_id = t.account_id
+      WHERE t.account_id = ?`, [accountId]);
     return rows[0];
   }
 

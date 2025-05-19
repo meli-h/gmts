@@ -1,14 +1,30 @@
+// backend/controllers/bookingController.js
 import {
-  listBookings, getBooking, createBooking, deleteBooking
+  listBookings,
+  getBooking,
+  createBooking,
+  deleteBooking
 } from '../repositories/bookingRepo.js';
 
-export const getAllBookings = async (_req, res) =>
-  res.json(await listBookings());
+export const getAllBookings = async (req, res) => {
+  try {
+    const rows = await listBookings();
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not fetch bookings' });
+  }
+};
 
 export const getOneBooking = async (req, res) => {
-  const b = await getBooking(req.params.id);
-  if (!b) return res.status(404).json({ error: 'Booking not found' });
-  res.json(b);
+  try {
+    const b = await getBooking(req.params.id);
+    if (!b) return res.status(404).json({ error: 'Booking not found' });
+    res.json(b);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Could not fetch booking' });
+  }
 };
 
 export const addBooking = async (req, res) => {

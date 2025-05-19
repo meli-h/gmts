@@ -4,7 +4,7 @@ import { createAccount } from './accountRepo.js';
 import bcrypt from 'bcrypt';
 
 /* ---------- LIST & GET DEĞİŞMEDİ ---------- */
-export async function listMembers() {
+export async function listGymMembers() {
   const [rows] = await pool.query(`
     SELECT gm.*, a.username
       FROM GymMember gm
@@ -12,7 +12,7 @@ export async function listMembers() {
   return rows;
 }
 
-export async function getMember(id) {
+export async function getGymMember(id) {
   const [rows] = await pool.query(`
     SELECT gm.*, a.username
       FROM GymMember gm
@@ -30,7 +30,7 @@ function endDate(start, type) {
   return d.toISOString().slice(0, 10);
 }
 
-export async function createMember(data) {
+export async function createGymMember(data) {
   // membershipType (camelCase) veya membership_type (snake_case) gelebilir
   const {
     name, surname, contactNumber, DateOfBirth, Gender,
@@ -63,7 +63,7 @@ export async function createMember(data) {
 }
 
 /* ---------- UPDATE & DELETE aynen ---------- */
-export async function updateMember(id, d) {
+export async function updateGymMember(id, d) {
   const {
     name, surname, contactNumber, DateOfBirth, Gender,
     membership_type, member_start_date, member_end_date
@@ -78,6 +78,16 @@ export async function updateMember(id, d) {
      membership_type, member_start_date, member_end_date, id]);
 }
 
-export async function deleteMember(id) {
+export async function deleteGymMember(id) {
   await pool.query(`DELETE FROM GymMember WHERE gymMember_id = ?`, [id]);
+}
+
+// Export the getMember function as getMemberByAccountId for use in auth
+export async function getMemberByAccountId(accountId) {
+  const [rows] = await pool.query(`
+    SELECT gm.*, a.username
+      FROM GymMember gm
+      JOIN Account a ON a.account_id = gm.account_id
+     WHERE gm.account_id = ?`, [accountId]);
+  return rows[0];
 }

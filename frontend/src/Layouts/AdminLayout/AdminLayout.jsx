@@ -1,14 +1,25 @@
-import { Navbar, Nav } from 'react-bootstrap';
+import { Navbar, Nav, Container } from 'react-bootstrap';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthContext';
 
 export default function AdminLayout() {
     const loc = useLocation().pathname;      // aktif link vurgusu
+    const { logout } = useAuth();
+
+    const handleLogout = () => {
+        logout();
+    };
 
     return (
         <div className="d-flex flex-column vh-100">
             {/* üst bar tam genişlik */}
             <Navbar bg="dark" variant="dark" sticky="top" className="px-3 w-100">
-                <Navbar.Brand as={Link} to="/admin">Gym Admin</Navbar.Brand>
+                <Container fluid className="p-0">
+                    <Navbar.Brand as={Link} to="/admin">Gym Admin</Navbar.Brand>
+                    <Nav className="ms-auto">
+                        <Nav.Link as={Link} to="/login" className="text-white" onClick={handleLogout}>Logout</Nav.Link>
+                    </Nav>
+                </Container>
             </Navbar>
 
             <div className="flex-grow-1 d-flex overflow-hidden">

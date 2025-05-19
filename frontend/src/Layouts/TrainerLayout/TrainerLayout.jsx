@@ -1,43 +1,63 @@
-import { Navbar, Nav } from 'react-bootstrap';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+// src/Layouts/TrainerLayout/TrainerLayout.jsx
+import React from 'react';
+import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Outlet, Link, useLocation, useParams } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthContext';
 
 export default function TrainerLayout() {
-    const loc = useLocation().pathname;
+  const loc = useLocation().pathname;      // aktif link vurgusu
+  const { trainerId } = useParams();       // URL'den trainerId'yi alıyoruz
+  const { logout } = useAuth();
 
-    return (
-        <div className="d-flex flex-column vh-100">
-            <Navbar bg="dark" variant="dark" sticky="top" className="px-3 w-100">
-                <Navbar.Brand as={Link} to="/trainer">Trainer Panel</Navbar.Brand>
-            </Navbar>
+  const handleLogout = () => {
+    logout();
+  };
 
-            <div className="flex-grow-1 d-flex overflow-hidden">
-                <aside className="border-end bg-light" style={{ width: 220 }}>
-                    <Nav className="flex-column p-3 gap-1">
-                        <div className="fw-semibold small text-muted">Classes</div>
+  return (
+    <div className="d-flex flex-column vh-100">
+      {/* Üst bar tam genişlik */}
+      <Navbar bg="dark" variant="dark" sticky="top" className="px-3 w-100">
+        <Container fluid className="p-0">
+          <Navbar.Brand as={Link} to={`/trainer/${trainerId}/class-list`}>
+            Trainer Panel
+          </Navbar.Brand>
+          <Nav className="ms-auto">
+            <Nav.Link as={Link} to="/login" className="text-white" onClick={handleLogout}>Logout</Nav.Link>
+          </Nav>
+        </Container>
+      </Navbar>
 
-                        {/* -------- MUTLAK PATHLAR -------- */}
-                        <Nav.Link
-                            as={Link}
-                            to="/trainer/create-class"
-                            active={loc === '/trainer/create-class'}
-                        >
-                            Create Class
-                        </Nav.Link>
+      <div className="flex-grow-1 d-flex overflow-hidden">
+        {/* Sidebar */}
+        <aside className="border-end bg-light" style={{ width: 220 }}>
+          <Nav className="flex-column p-3 gap-1">
 
-                        <Nav.Link
-                            as={Link}
-                            to="/trainer/class-list"
-                            active={loc === '/trainer/class-list'}
-                        >
-                            Class List
-                        </Nav.Link>
-                    </Nav>
-                </aside>
+            <div className="fw-semibold small text-muted">Classes</div>
 
-                <main className="flex-grow-1 overflow-auto p-4 bg-white">
-                    <Outlet />
-                </main>
-            </div>
-        </div>
-    );
+            <Nav.Link
+              as={Link}
+              to={`/trainer/${trainerId}/create-class`}
+              active={loc === `/trainer/${trainerId}/create-class`}
+            >
+              Create Class
+            </Nav.Link>
+
+            <Nav.Link
+              as={Link}
+              to={`/trainer/${trainerId}/class-list`}
+              active={loc === `/trainer/${trainerId}/class-list`}
+            >
+              Class List
+            </Nav.Link>
+
+          </Nav>
+        </aside>
+
+        {/* Alt rotalar */}
+        <main className="flex-grow-1 overflow-auto p-4 bg-white">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
 }
