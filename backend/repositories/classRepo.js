@@ -59,12 +59,52 @@ export async function createClass(data) {
 
 /* ---------- UPDATE ---------- */
 export async function updateClass(class_id, data) {
-  const { title, duration, capacity } = data;
-  await pool.query(`
-    UPDATE Class
-       SET title = ?, duration = ?, capacity = ?
-     WHERE class_id = ?
-  `, [title, duration, capacity, class_id]);
+  const { title, start_time, duration, capacity } = data;
+  
+  // If start_time is provided, check for schedule conflicts
+  if (start_time) {
+    // Get trainer_id for this class
+    const [classRow] = await pool.query(
+      `SELECT trainer_id, class_id FROM Class WHERE class_id = ?`, 
+      [class_id]
+    );
+    
+    if (classRow.length === 0) {
+      const e = new Error('Class not found');
+      e.status = 404;
+      throw e;
+    }
+    
+    const trainer_id = classRow[0].trainer_id;
+    
+    // Check for conflicts with other classes (excluding this one)
+    const [conflict] = await pool.query(`
+      SELECT COUNT(*) AS cnt
+        FROM Class
+       WHERE trainer_id = ?
+         AND class_id != ?
+         AND ( ? < DATE_ADD(start_time, INTERVAL duration MINUTE) )
+         AND ( DATE_ADD(?, INTERVAL duration MINUTE) > start_time )
+    `, [trainer_id, class_id, start_time, start_time]);
+    
+    if (conflict[0].cnt > 0) {
+      const e = new Error('Trainer schedule conflict');
+      e.status = 409;
+      throw e;
+    }
+    
+    await pool.query(`
+      UPDATE Class
+         SET title = ?, start_time = ?, duration = ?, capacity = ?
+       WHERE class_id = ?
+    `, [title, start_time, duration, capacity, class_id]);
+  } else {
+    await pool.query(`
+      UPDATE Class
+         SET title = ?, duration = ?, capacity = ?
+       WHERE class_id = ?
+    `, [title, duration, capacity, class_id]);
+  }
 }
 
 /* ---------- DELETE ---------- */

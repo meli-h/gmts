@@ -38,7 +38,10 @@ export const editClass = async (req, res) => {
     res.status(204).send();
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Class not updated' });
+    // Use the specific error message and status from the repository if available
+    res.status(err.status || 500).json({ 
+      error: err.message || 'Class not updated' 
+    });
   }
 };
 
