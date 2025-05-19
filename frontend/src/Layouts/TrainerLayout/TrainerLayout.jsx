@@ -49,6 +49,16 @@ export default function TrainerLayout() {
             >
               Class List
             </Nav.Link>
+            
+            <div className="fw-semibold small text-muted mt-3">Members</div>
+            
+            <Nav.Link
+              as={Link}
+              to={`/trainer/${trainerId}/member-bookings`}
+              active={loc === `/trainer/${trainerId}/member-bookings`}
+            >
+              View Booked Members
+            </Nav.Link>
 
           </Nav>
         </aside>

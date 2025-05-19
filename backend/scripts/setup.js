@@ -34,7 +34,7 @@ async function createAdminAccount() {
     const passwordHash = await bcrypt.hash(PASSWORD, 10);
     
     // Create account
-    const accountId = await createAccount(USERNAME, passwordHash, 'Admin', conn);
+    const accountId = await createAccount(USERNAME, passwordHash, 'Administrator', conn);
     console.log(`✅ Admin account created with ID: ${accountId}`);
     
     // Create administrator record

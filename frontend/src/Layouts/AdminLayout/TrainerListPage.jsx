@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getTrainers, deleteTrainer } from '../../api';
-import { Table, Button, Spinner, Alert, Pagination } from 'react-bootstrap';
+import { getTrainers, deleteTrainer, updateTrainer } from '../../api';
+import { Table, Button, Spinner, Alert, Pagination, Form, InputGroup, Modal, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 const PAGE_SIZE = 10;
 
@@ -9,6 +10,11 @@ export default function TrainerListPage() {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [currentTrainer, setCurrentTrainer] = useState(null);
+    const [formData, setFormData] = useState({});
 
     const fetchList = async () => {
         try {
@@ -37,13 +43,58 @@ export default function TrainerListPage() {
         }
     };
 
+    const handleEdit = (trainer) => {
+        setCurrentTrainer(trainer);
+        setFormData({
+            name: trainer.name,
+            surname: trainer.surname,
+            contactNumber: trainer.contactNumber || '',
+            DateOfBirth: trainer.DateOfBirth?.slice(0, 10) || '',
+            Gender: trainer.Gender || 'Male'
+        });
+        setShowEditModal(true);
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleUpdate = async () => {
+        try {
+            await updateTrainer(currentTrainer.trainer_id, formData);
+            setShowEditModal(false);
+            fetchList();
+            alert('Trainer updated successfully');
+        } catch (error) {
+            console.error('Failed to update trainer:', error);
+            alert('Failed to update trainer');
+        }
+    };
+
+    // Reset to page 1 when search term changes
+    useEffect(() => {
+        setPage(1);
+    }, [searchTerm]);
+
     if (loading) return <Spinner className="m-5" animation="border" />;
     if (error) return <Alert variant="danger">{error}</Alert>;
 
     // Safe access to trainers with fallback
     const trainerData = trainers || [];
-    const totalPages = Math.ceil(trainerData.length / PAGE_SIZE) || 1;
-    const slice = trainerData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    
+    // Filter trainers based on search term
+    const filteredTrainers = searchTerm.trim() 
+        ? trainerData.filter(trainer => 
+            trainer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            trainer.surname.toLowerCase().includes(searchTerm.toLowerCase()))
+        : trainerData;
+    
+    const totalPages = Math.ceil(filteredTrainers.length / PAGE_SIZE) || 1;
+    const slice = filteredTrainers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     
     // Ensure page is in bounds
     if (page > totalPages && totalPages > 0) {
@@ -54,12 +105,40 @@ export default function TrainerListPage() {
         <div>
             <h2 className="mb-4">Trainer List</h2>
             
-            <Button onClick={fetchList} className="mb-3" variant="outline-primary">
-                Refresh
-            </Button>
+            {/* Search Bar */}
+            <Form className="mb-3">
+                <InputGroup>
+                    <Form.Control
+                        placeholder="Search by name or surname..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                        <Button 
+                            variant="outline-secondary"
+                            onClick={() => setSearchTerm('')}
+                        >
+                            Clear
+                        </Button>
+                    )}
+                </InputGroup>
+            </Form>
             
-            {trainers && trainers.length === 0 ? (
-                <Alert variant="info">No trainers found. Create some trainers first.</Alert>
+            <div className="d-flex justify-content-between mb-3">
+                <Button onClick={fetchList} variant="outline-primary">
+                    Refresh
+                </Button>
+                <span className="text-muted">
+                    {filteredTrainers.length} trainer{filteredTrainers.length !== 1 ? 's' : ''} found
+                </span>
+            </div>
+            
+            {filteredTrainers.length === 0 ? (
+                <Alert variant="info">
+                    {searchTerm 
+                        ? `No trainers found matching "${searchTerm}"` 
+                        : 'No trainers found. Create some trainers first.'}
+                </Alert>
             ) : (
                 <>
                     <Table striped bordered hover>
@@ -80,13 +159,22 @@ export default function TrainerListPage() {
                                     <td>{t.surname}</td>
                                     <td>{t.contactNumber || 'N/A'}</td>
                                     <td>
-                                        <Button
-                                            size="sm"
-                                            variant="danger"
-                                            onClick={() => handleDelete(t.trainer_id)}
-                                        >
-                                            Delete
-                                        </Button>
+                                        <div className="d-flex gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="primary"
+                                                onClick={() => handleEdit(t)}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="danger"
+                                                onClick={() => handleDelete(t.trainer_id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -116,6 +204,93 @@ export default function TrainerListPage() {
                     )}
                 </>
             )}
+            
+            {/* Edit Trainer Modal */}
+            <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit Trainer</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {currentTrainer && (
+                        <Form>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label>Name</Form.Label>
+                                        <Form.Control 
+                                            type="text" 
+                                            name="name" 
+                                            value={formData.name || ''} 
+                                            onChange={handleChange} 
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label>Surname</Form.Label>
+                                        <Form.Control 
+                                            type="text" 
+                                            name="surname" 
+                                            value={formData.surname || ''} 
+                                            onChange={handleChange} 
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                            
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label>Contact Number</Form.Label>
+                                        <Form.Control 
+                                            type="text" 
+                                            name="contactNumber" 
+                                            value={formData.contactNumber || ''} 
+                                            onChange={handleChange} 
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label>Date of Birth</Form.Label>
+                                        <Form.Control 
+                                            type="date" 
+                                            name="DateOfBirth" 
+                                            value={formData.DateOfBirth || ''} 
+                                            onChange={handleChange} 
+                                        />
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                            
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <Form.Group>
+                                        <Form.Label>Gender</Form.Label>
+                                        <Form.Select 
+                                            name="Gender" 
+                                            value={formData.Gender || ''} 
+                                            onChange={handleChange}
+                                        >
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Col>
+                            </Row>
+                        </Form>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={handleUpdate}>
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMembers, deleteMember, updateMember } from '../../api';
-import { Table, Button, Spinner, Pagination, Modal, Form, Row, Col } from 'react-bootstrap';
+import { Table, Button, Spinner, Pagination, Modal, Form, Row, Col, InputGroup } from 'react-bootstrap';
 
 const PAGE_SIZE = 10;
 
@@ -10,12 +10,36 @@ export default function GymMemberListPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [currentMember, setCurrentMember] = useState(null);
     const [formData, setFormData] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredMembers, setFilteredMembers] = useState([]);
 
     /* ---- fetch helpers ---- */
-    const fetchList = async () => setMembers(await getMembers());
+    const fetchList = async () => {
+        const data = await getMembers();
+        setMembers(data);
+        setFilteredMembers(data);
+    };
 
     /* ---- initial load ---- */
     useEffect(() => { fetchList(); }, []);
+
+    /* ---- search filter ---- */
+    useEffect(() => {
+        if (!members) return;
+        
+        if (!searchTerm.trim()) {
+            setFilteredMembers(members);
+        } else {
+            const term = searchTerm.toLowerCase();
+            const filtered = members.filter(member => 
+                member.name?.toLowerCase().includes(term) || 
+                member.surname?.toLowerCase().includes(term)
+            );
+            setFilteredMembers(filtered);
+        }
+        // Reset to first page when search changes
+        setPage(1);
+    }, [searchTerm, members]);
 
     /* ---- delete with confirm ---- */
     const handleDelete = async (id) => {
@@ -63,8 +87,8 @@ export default function GymMemberListPage() {
     if (!members) return <Spinner className="m-5" animation="border" />;
 
     /* ---- pagination math ---- */
-    const totalPages = Math.ceil(members.length / PAGE_SIZE) || 1;
-    const slice = members.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const totalPages = Math.ceil(filteredMembers.length / PAGE_SIZE) || 1;
+    const slice = filteredMembers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     /* ---- keep page in bounds (ör. son satırı silince) ---- */
     if (page > totalPages) setPage(totalPages);
@@ -101,6 +125,28 @@ export default function GymMemberListPage() {
     return (
         <div>
             <h2 className="mb-4">Gym Member List</h2>
+            
+            {/* Search Bar */}
+            <div className="mb-4">
+                <Form.Group>
+                    <InputGroup>
+                        <Form.Control
+                            type="text"
+                            placeholder="Search by name or surname..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <Button 
+                                variant="outline-secondary"
+                                onClick={() => setSearchTerm('')}
+                            >
+                                Clear
+                            </Button>
+                        )}
+                    </InputGroup>
+                </Form.Group>
+            </div>
 
             <Table striped bordered hover responsive>
                 <thead>
@@ -130,8 +176,8 @@ export default function GymMemberListPage() {
                             </td>
                         </tr>
                     ))}
-                    {members.length === 0 &&
-                        <tr><td colSpan={7} className="text-center">No members yet</td></tr>}
+                    {filteredMembers.length === 0 &&
+                        <tr><td colSpan={7} className="text-center">No members found</td></tr>}
                 </tbody>
             </Table>
 

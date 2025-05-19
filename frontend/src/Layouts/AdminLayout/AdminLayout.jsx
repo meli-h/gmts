@@ -26,7 +26,15 @@ export default function AdminLayout() {
                 {/* sidebar */}
                 <aside className="border-end bg-light" style={{ width: 220 }}>
                     <Nav className="flex-column p-3 gap-1">
-                        <div className="fw-semibold small text-muted">Trainer</div>
+                        <Nav.Link
+                            as={Link}
+                            to="/admin/dashboard"
+                            active={loc === '/admin/dashboard'}
+                        >
+                            Dashboard
+                        </Nav.Link>
+
+                        <div className="fw-semibold small text-muted mt-3">Trainer</div>
 
                         <Nav.Link
                             as={Link}

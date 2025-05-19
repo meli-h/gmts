@@ -6,10 +6,12 @@ import CreateTrainerPage       from './Layouts/AdminLayout/CreateTrainerPage.jsx
 import TrainerListPage         from './Layouts/AdminLayout/TrainerListPage.jsx';
 import CreateGymMemberPage     from './Layouts/AdminLayout/CreateGymMemberPage.jsx';
 import GymMemberListPage       from './Layouts/AdminLayout/GymMemberListPage.jsx';
+import DashboardPage           from './Layouts/AdminLayout/DashboardPage.jsx';
 
 import TrainerLayout           from './Layouts/TrainerLayout/TrainerLayout.jsx';
 import CreateClassPage         from './Layouts/TrainerLayout/CreateClassPage.jsx';
 import ClassListPage           from './Layouts/TrainerLayout/ClassListPage.jsx';
+import MemberBookingsPage      from './Layouts/TrainerLayout/MemberBookingsPage.jsx';
 
 import GymMemberLayout         from './Layouts/GymMemberLayout/GymMemberLayout.jsx';
 import CreateBookingPage       from './Layouts/GymMemberLayout/CreateBookingPage.jsx';
@@ -17,6 +19,8 @@ import BookingListPage         from './Layouts/GymMemberLayout/BookingListPage.j
 
 import LoginPage               from './pages/LoginPage.jsx';
 import RequireAuth             from './auth/RequireAuth.jsx';
+
+import './App.css';
 
 export default function App() {
   return (
@@ -30,7 +34,8 @@ export default function App() {
         <Route element={<RequireAuth />}>
           {/* Admin */}
           <Route path="/admin/*" element={<AdminLayout />}>
-            <Route index element={<Navigate to="create-trainer" replace />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
             <Route path="create-trainer" element={<CreateTrainerPage />} />
             <Route path="trainer-list"   element={<TrainerListPage />} />
             <Route path="create-member"  element={<CreateGymMemberPage />} />
@@ -42,6 +47,7 @@ export default function App() {
             <Route index           element={<Navigate to="create-class" replace />} />
             <Route path="create-class" element={<CreateClassPage />} />
             <Route path="class-list"   element={<ClassListPage />} />
+            <Route path="member-bookings" element={<MemberBookingsPage />} />
           </Route>
 
           {/* GymMember (parametreli) */}

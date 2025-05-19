@@ -8,7 +8,8 @@ import {
   Spinner,
   Pagination,
   Alert,
-  InputGroup
+  InputGroup,
+  Modal
 } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 
@@ -23,6 +24,11 @@ export default function CreateBookingPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [error, setError] = useState(null);
+  
+  // Error modal state
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [errorTitle, setErrorTitle] = useState('Error');
 
   useEffect(() => {
     getClasses()
@@ -74,8 +80,32 @@ export default function CreateBookingPage() {
       alert('Booking created!');
       setAlready(prev => new Set(prev).add(class_id));
     } catch (err) {
-      alert(err.message);
+      // Handle specific error types
+      const errorMsg = err.message;
+      
+      if (errorMsg.includes('Membership inactive for class date')) {
+        setErrorTitle('Membership Issue');
+        setErrorMessage('Your membership is not active for the date of this class. Please check your membership dates or contact the gym staff.');
+      } 
+      else if (errorMsg.includes('Class is full')) {
+        setErrorTitle('Class Full');
+        setErrorMessage('This class has reached its maximum capacity. Please choose another class.');
+      }
+      else if (errorMsg.includes('Already booked this class')) {
+        setErrorTitle('Duplicate Booking');
+        setErrorMessage('You have already booked this class.');
+      } 
+      else {
+        setErrorTitle('Booking Error');
+        setErrorMessage(`Failed to book the class: ${errorMsg}`);
+      }
+      
+      setShowErrorModal(true);
     }
+  };
+
+  const closeErrorModal = () => {
+    setShowErrorModal(false);
   };
 
   if (error) return <Alert variant="danger">{error}</Alert>;
@@ -199,6 +229,21 @@ export default function CreateBookingPage() {
           <Pagination.Last onClick={() => setPage(totalPages)} disabled={page === totalPages} />
         </Pagination>
       )}
+      
+      {/* Error Modal */}
+      <Modal show={showErrorModal} onHide={closeErrorModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>{errorTitle}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{errorMessage}</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeErrorModal}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
