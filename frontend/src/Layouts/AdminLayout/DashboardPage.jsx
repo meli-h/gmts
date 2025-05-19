@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { 
   Container, Row, Col, Card, 
-  Table, Spinner, Alert 
+  Table, Spinner, Alert, Badge
 } from 'react-bootstrap';
 import { 
   getTrainerStats, 
   getMembershipDistribution, 
-  getInactiveMembers 
+  getInactiveMembers,
+  getClassPopularity,
+  getMemberEngagement
 } from '../../api';
 import {
   Chart as ChartJS,
@@ -35,6 +37,8 @@ export default function DashboardPage() {
   const [trainerStats, setTrainerStats] = useState(null);
   const [membershipDistribution, setMembershipDistribution] = useState(null);
   const [inactiveMembers, setInactiveMembers] = useState(null);
+  const [classPopularity, setClassPopularity] = useState(null);
+  const [memberEngagement, setMemberEngagement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -42,15 +46,19 @@ export default function DashboardPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [trainers, memberships, inactive] = await Promise.all([
+        const [trainers, memberships, inactive, classes, engagement] = await Promise.all([
           getTrainerStats(),
           getMembershipDistribution(),
-          getInactiveMembers()
+          getInactiveMembers(),
+          getClassPopularity(),
+          getMemberEngagement()
         ]);
         
         setTrainerStats(trainers);
         setMembershipDistribution(memberships);
         setInactiveMembers(inactive);
+        setClassPopularity(classes);
+        setMemberEngagement(engagement);
         setError(null);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -120,12 +128,44 @@ export default function DashboardPage() {
     ],
   };
 
+  // Prepare class popularity chart data
+  const classPopularityData = {
+    labels: Array.isArray(classPopularity) ? classPopularity.map(item => item.class_name) : [],
+    datasets: [
+      {
+        label: 'Booking Count',
+        data: Array.isArray(classPopularity) ? classPopularity.map(item => item.booking_count) : [],
+        backgroundColor: 'rgba(255, 159, 64, 0.6)',
+        borderColor: 'rgba(255, 159, 64, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
   const barOptions = {
     responsive: true,
     plugins: {
       title: {
         display: true,
         text: 'Top 5 Trainers by Participants',
+      },
+    },
+    scales: {
+      x: {
+        stacked: false,
+      },
+      y: {
+        stacked: false,
+      },
+    },
+  };
+
+  const classBarOptions = {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Most Popular Classes',
       },
     },
     scales: {
@@ -207,6 +247,120 @@ export default function DashboardPage() {
                   </tbody>
                 </Table>
               </div>
+            </Card.Footer>
+          </Card>
+        </Col>
+      </Row>
+      
+      {/* Class Popularity Analysis */}
+      <Row className="mb-4">
+        <Col>
+          <Card>
+            <Card.Header className="bg-info text-white">
+              <h5 className="m-0">Class Popularity Analysis</h5>
+            </Card.Header>
+            <Card.Body>
+              <div style={{ height: '250px', width: '100%' }}>
+                {Array.isArray(classPopularity) && classPopularity.length > 0 ? (
+                  <Bar data={classPopularityData} options={classBarOptions} />
+                ) : (
+                  <div className="text-center p-5">
+                    <p>No class popularity data available</p>
+                  </div>
+                )}
+              </div>
+            </Card.Body>
+            <Card.Footer>
+              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                <Table striped bordered hover responsive className="mb-0">
+                  <thead>
+                    <tr>
+                      <th>Class Name</th>
+                      <th>Day</th>
+                      <th>Time</th>
+                      <th>Trainer</th>
+                      <th>Bookings</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.isArray(classPopularity) && classPopularity.length > 0 ? (
+                      classPopularity.map((classItem, index) => (
+                        <tr key={index}>
+                          <td>{classItem.class_name}</td>
+                          <td>{classItem.day_of_week}</td>
+                          <td>{classItem.start_time}</td>
+                          <td>{classItem.trainer_name}</td>
+                          <td>
+                            <Badge bg="info" pill>
+                              {classItem.booking_count}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="text-center">
+                          No class popularity data available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            </Card.Footer>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Member Engagement */}
+      <Row className="mb-4">
+        <Col>
+          <Card>
+            <Card.Header className="bg-primary text-white">
+              <h5 className="m-0">Member Engagement Metrics</h5>
+            </Card.Header>
+            <Card.Body className="p-0">
+              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                <Table striped bordered hover responsive className="mb-0">
+                  <thead className="sticky-top bg-light">
+                    <tr>
+                      <th>Member</th>
+                      <th>Membership Type</th>
+                      <th>Total Bookings</th>
+                      <th>Unique Days</th>
+                      <th>Last Booking</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.isArray(memberEngagement) && memberEngagement.length > 0 ? (
+                      memberEngagement.map((member, index) => (
+                        <tr key={index}>
+                          <td>{member.member_name}</td>
+                          <td>{member.membership_type}</td>
+                          <td>
+                            <Badge bg="primary" pill>
+                              {member.total_bookings}
+                            </Badge>
+                          </td>
+                          <td>{member.unique_days}</td>
+                          <td>{member.last_booking ? new Date(member.last_booking).toLocaleDateString() : 'N/A'}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="text-center">
+                          No member engagement data found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            </Card.Body>
+            <Card.Footer className="text-end">
+              <small className="text-muted">
+                Showing top {Array.isArray(memberEngagement) ? memberEngagement.length : 0} active members
+              </small>
             </Card.Footer>
           </Card>
         </Col>

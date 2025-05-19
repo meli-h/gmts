@@ -67,5 +67,7 @@ export const login = ({ username, password }) =>
 export const getTrainerStats = () => fetch(`${BASE}/stats/trainers`).then(r => r.json());
 export const getMembershipDistribution = () => fetch(`${BASE}/stats/membership-distribution`).then(r => r.json());
 export const getInactiveMembers = () => fetch(`${BASE}/stats/inactive-members`).then(r => r.json());
+export const getClassPopularity = () => fetch(`${BASE}/stats/class-popularity`).then(r => r.json());
+export const getMemberEngagement = () => fetch(`${BASE}/stats/member-engagement`).then(r => r.json());
 
 
