@@ -31,9 +31,10 @@ npm install
 ```
 create .env file on backend directory
 in this file add 
-MYSQL_HOST= 'localhost'
-MYSQL_USER= '{yourUsername}'    
-MYSQL_PASSWORD= '{yourPassword}'
+
+> MYSQL_HOST= 'localhost' 
+MYSQL_USER= '{yourUsername}'  
+MYSQL_PASSWORD= '{yourPassword}' 
 MYSQL_DATABASE= 'gymdb'
 
 ### 3. Set up the frontend
